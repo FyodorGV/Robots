@@ -10,7 +10,6 @@ import java.awt.*;
 
 public class LogWindow extends JInternalFrame implements LogChangeListener, Save
 {
-    private final WindowStateManager windowState = new WindowStateManager();
     private LogWindowSource logSource;
     private TextArea logContent;
 
@@ -44,16 +43,6 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Save
     public void onLogChanged()
     {
         EventQueue.invokeLater(this::updateLogContent);
-    }
-
-    @Override
-    public Map<String, String> saveState() {
-        return WindowStateManager.saveInternalFrame(this, getPrefix());
-    }
-
-    @Override
-    public void restoreState(Map<String, String> state) {
-        WindowStateManager.restoreInternalFrame(this, state, getPrefix());
     }
 
     @Override

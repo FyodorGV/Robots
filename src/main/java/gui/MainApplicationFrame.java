@@ -48,27 +48,14 @@ public class MainApplicationFrame extends JFrame implements Save{
      * Загружает состояние всех окон из файла
      */
     private void loadAllStates() {
-        Map<String, String> all = storage.load();
-        if (all.isEmpty()) return;
-
-        // восстанавливаем все окна
-        restoreState(new PrefixedMap(all, getPrefix()));
-        logWindow.restoreState(new PrefixedMap(all, logWindow.getPrefix()));
-        gameWindow.restoreState(new PrefixedMap(all, gameWindow.getPrefix()));
+        storage.loadAll(this, desktopPane.getAllFrames());
     }
 
     /**
      * Сохраняет состояние всех окон в файл
      */
     private void saveAllStates() {
-        Map<String, String> all = new HashMap<>();
-
-        // сохраняем все окна
-        new PrefixedMap(all, getPrefix()).putAll(saveState());
-        new PrefixedMap(all, logWindow.getPrefix()).putAll(logWindow.saveState());
-        new PrefixedMap(all, gameWindow.getPrefix()).putAll(gameWindow.saveState());
-
-        storage.save(all);
+        storage.saveAll(this, desktopPane.getAllFrames());
     }
 
 
@@ -219,16 +206,6 @@ public class MainApplicationFrame extends JFrame implements Save{
                  | IllegalAccessException | UnsupportedLookAndFeelException e) {
             // just ignore
         }
-    }
-
-    @Override
-    public Map<String, String> saveState() {
-        return WindowStateManager.saveFrame(this, getPrefix());
-    }
-
-    @Override
-    public void restoreState(Map<String, String> state) {
-        WindowStateManager.restoreFrame(this, state, getPrefix());
     }
 
     @Override
