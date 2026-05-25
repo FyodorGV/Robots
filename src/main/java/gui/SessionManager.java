@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,25 +28,12 @@ public class SessionManager {
      */
     public void saveAll(Save mainFrame, JInternalFrame[] internalFrames) {
         Map<String, String> allData = new HashMap<>();
-        if (mainFrame instanceof JFrame) {
-            JFrame frame = (JFrame) mainFrame;
-            Map<String, String> view = new PrefixedMap(allData, mainFrame.getPrefix());
-            view.put("x", String.valueOf(frame.getX()));
-            view.put("y", String.valueOf(frame.getY()));
-            view.put("width", String.valueOf(frame.getWidth()));
-            view.put("height", String.valueOf(frame.getHeight()));
-            view.put("extendedState", String.valueOf(frame.getExtendedState()));
+        if (mainFrame instanceof JFrame frame) {
+            Map<String, String> view = saveCommonState(frame, mainFrame, allData);
         }
         for (JInternalFrame frame : internalFrames) {
-            if (frame instanceof Save) {
-                Save saveableFrame = (Save) frame;
-                Map<String, String> view = new PrefixedMap(allData, saveableFrame.getPrefix());
-
-                view.put("x", String.valueOf(frame.getX()));
-                view.put("y", String.valueOf(frame.getY()));
-                view.put("width", String.valueOf(frame.getWidth()));
-                view.put("height", String.valueOf(frame.getHeight()));
-                view.put("isIcon", String.valueOf(frame.isIcon()));
+            if (frame instanceof Save saveableFrame) {
+                Map<String, String> view = saveCommonState(frame, saveableFrame, allData);
             }
         }
         Properties props = new Properties();
@@ -53,6 +41,40 @@ public class SessionManager {
         try (FileOutputStream out = new FileOutputStream(path)) {
             props.store(out, "состояние окон");
         } catch (IOException e) {}
+    }
+
+    /**
+     * Метод для сохранения общих всойств
+     */
+    private Map<String, String> saveCommonState(Component component, Save saveable, Map<String, String> allData){
+        Map<String, String> view = new PrefixedMap(allData, saveable.getPrefix());
+        view.put("x", String.valueOf(component.getX()));
+        view.put("y", String.valueOf(component.getY()));
+        view.put("width", String.valueOf(component.getWidth()));
+        view.put("height", String.valueOf(component.getHeight()));
+        if (component instanceof JInternalFrame frame) {
+            view.put("isIcon", String.valueOf(frame.isIcon()));
+        }else if (component instanceof JFrame frame) {
+            view.put("extendedState", String.valueOf(frame.getExtendedState()));
+        }
+            return view;
+    }
+
+    /**
+     * Метод для загрузки общих свойств
+     */
+    private void loadCommonState(Component component, Map<String, String> view){
+        try {
+            String x = view.get("x");
+            String y = view.get("y");
+            String w = view.get("width");
+            String h = view.get("height");
+
+            if (x != null && y != null && w != null && h != null) {
+                component.setBounds(Integer.parseInt(x), Integer.parseInt(y),
+                        Integer.parseInt(w), Integer.parseInt(h));
+            }
+        } catch (NumberFormatException e){}
     }
 
     /**
@@ -74,32 +96,23 @@ public class SessionManager {
             return;
         }
 
-        if (mainFrame instanceof JFrame) {
-            JFrame frame = (JFrame) mainFrame;
+        if (mainFrame instanceof JFrame frame) {
             Map<String, String> view = new PrefixedMap(allData, mainFrame.getPrefix());
+            loadCommonState(frame, view);
             try {
-                String x = view.get("x"); String y = view.get("y");
-                String w = view.get("width"); String h = view.get("height");
-                if (x != null && y != null && w != null && h != null) {
-                    frame.setBounds(Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(w), Integer.parseInt(h));
-                }
                 String state = view.get("extendedState");
                 if (state != null) frame.setExtendedState(Integer.parseInt(state));
             } catch (NumberFormatException e) {}
         }
         for (JInternalFrame frame : internalFrames) {
-            if (frame instanceof Save) {
-                Save saveableFrame = (Save) frame;
+            if (frame instanceof Save saveableFrame) {
                 Map<String, String> view = new PrefixedMap(allData, saveableFrame.getPrefix());
+                loadCommonState(frame, view);
                 try {
-                    String x = view.get("x"); String y = view.get("y");
-                    String w = view.get("width"); String h = view.get("height");
-                    if (x != null && y != null && w != null && h != null) {
-                        frame.setBounds(Integer.parseInt(x), Integer.parseInt(y), Integer.parseInt(w), Integer.parseInt(h));
-                    }
                     String isIcon = view.get("isIcon");
                     if (isIcon != null) frame.setIcon(Boolean.parseBoolean(isIcon));
-                } catch (NumberFormatException | PropertyVetoException e) {}
+                }
+                catch (NumberFormatException | PropertyVetoException e) {}
             }
         }
     }

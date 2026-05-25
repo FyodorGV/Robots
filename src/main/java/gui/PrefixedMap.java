@@ -16,8 +16,6 @@ public class PrefixedMap extends AbstractMap<String, String> {
 
     /**
      * Создает новый фильтр для словаря
-     * @param source
-     * @param prefix
      */
     public PrefixedMap(Map<String, String> source, String prefix) {
         this.source = source;
